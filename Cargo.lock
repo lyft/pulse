@@ -794,7 +794,7 @@ checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
 [[package]]
 name = "bd-bonjson"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "ahash",
  "bd-workspace-hack",
@@ -807,7 +807,7 @@ dependencies = [
 [[package]]
 name = "bd-client-common"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -834,7 +834,7 @@ dependencies = [
 [[package]]
 name = "bd-client-stats-store"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -852,7 +852,7 @@ dependencies = [
 [[package]]
 name = "bd-error-reporter"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "bd-client-common",
@@ -868,7 +868,7 @@ dependencies = [
 [[package]]
 name = "bd-events"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "bd-runtime",
@@ -881,7 +881,7 @@ dependencies = [
 [[package]]
 name = "bd-grpc"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "assert_matches",
@@ -923,7 +923,7 @@ dependencies = [
 [[package]]
 name = "bd-grpc-codec"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "bd-stats-common",
  "bd-workspace-hack",
@@ -937,7 +937,7 @@ dependencies = [
 [[package]]
 name = "bd-key-value"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -955,7 +955,7 @@ dependencies = [
 [[package]]
 name = "bd-log"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "bd-workspace-hack",
@@ -972,7 +972,7 @@ dependencies = [
 [[package]]
 name = "bd-log-matcher"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "bd-log-primitives",
@@ -988,7 +988,7 @@ dependencies = [
 [[package]]
 name = "bd-log-metadata"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "bd-log-primitives",
@@ -999,7 +999,7 @@ dependencies = [
 [[package]]
 name = "bd-log-primitives"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "ahash",
  "anyhow",
@@ -1017,7 +1017,7 @@ dependencies = [
 [[package]]
 name = "bd-macros"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "bd-workspace-hack",
  "proc-macro2",
@@ -1028,7 +1028,7 @@ dependencies = [
 [[package]]
 name = "bd-metadata"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "bd-workspace-hack",
 ]
@@ -1036,7 +1036,7 @@ dependencies = [
 [[package]]
 name = "bd-panic"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "bd-workspace-hack",
  "color-backtrace",
@@ -1047,7 +1047,7 @@ dependencies = [
 [[package]]
 name = "bd-pgv"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "bd-workspace-hack",
  "log",
@@ -1059,7 +1059,7 @@ dependencies = [
 [[package]]
 name = "bd-proto"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "bd-pgv",
  "bd-workspace-hack",
@@ -1073,7 +1073,7 @@ dependencies = [
 [[package]]
 name = "bd-proto-util"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "ahash",
  "anyhow",
@@ -1094,7 +1094,7 @@ dependencies = [
 [[package]]
 name = "bd-resilient-kv"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "ahash",
  "anyhow",
@@ -1120,7 +1120,7 @@ dependencies = [
 [[package]]
 name = "bd-resource-utilization"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "bd-client-common",
@@ -1137,7 +1137,7 @@ dependencies = [
 [[package]]
 name = "bd-runtime"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1155,7 +1155,7 @@ dependencies = [
 [[package]]
 name = "bd-runtime-config"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "async-trait",
  "bd-server-stats",
@@ -1174,7 +1174,7 @@ dependencies = [
 [[package]]
 name = "bd-server-stats"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "bd-stats-common",
@@ -1194,7 +1194,7 @@ dependencies = [
 [[package]]
 name = "bd-session-replay"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "bd-client-common",
@@ -1216,7 +1216,7 @@ dependencies = [
 [[package]]
 name = "bd-shutdown"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "bd-workspace-hack",
  "log",
@@ -1226,7 +1226,7 @@ dependencies = [
 [[package]]
 name = "bd-state"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "ahash",
  "anyhow",
@@ -1248,7 +1248,7 @@ dependencies = [
 [[package]]
 name = "bd-stats-common"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "bd-macros",
@@ -1261,7 +1261,7 @@ dependencies = [
 [[package]]
 name = "bd-test-helpers"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "anyhow",
  "assert_matches",
@@ -1311,7 +1311,7 @@ dependencies = [
 [[package]]
 name = "bd-time"
 version = "1.0.0"
-source = "git+https://github.com/bitdriftlabs/shared-core.git#db9b60fa5338b216be252ddb3a7779149bdf11d7"
+source = "git+https://github.com/lyft/shared-core.git#eca069c7cebbc9e5029845b8993c459021743ef2"
 dependencies = [
  "async-trait",
  "bd-workspace-hack",
@@ -4571,7 +4571,7 @@ dependencies = [
 [[package]]
 name = "prometheus-parser"
 version = "0.1.0"
-source = "git+https://github.com/bitdriftlabs/mpl-core#b48a43712011cdac344608b035156c50304b86fb"
+source = "git+https://github.com/lyft/mpl-core#3198c21d895418698615fe4e9de417a5c8e2b826"
 dependencies = [
  "bytes",
  "indexmap",
@@ -4671,7 +4671,7 @@ dependencies = [
 [[package]]
 name = "protobuf"
 version = "4.0.0-alpha.0"
-source = "git+https://github.com/bitdriftlabs/rust-protobuf.git?branch=patch-stack#4d5c5822ad96089057c438616a943aadf6f613ac"
+source = "git+https://github.com/lyft/rust-protobuf.git?branch=patch-stack#4d5c5822ad96089057c438616a943aadf6f613ac"
 dependencies = [
  "bytes",
  "once_cell",
@@ -4682,7 +4682,7 @@ dependencies = [
 [[package]]
 name = "protobuf-codegen"
 version = "4.0.0-alpha.0"
-source = "git+https://github.com/bitdriftlabs/rust-protobuf.git?branch=patch-stack#4d5c5822ad96089057c438616a943aadf6f613ac"
+source = "git+https://github.com/lyft/rust-protobuf.git?branch=patch-stack#4d5c5822ad96089057c438616a943aadf6f613ac"
 dependencies = [
  "anyhow",
  "once_cell",
@@ -4696,7 +4696,7 @@ dependencies = [
 [[package]]
 name = "protobuf-json-mapping"
 version = "4.0.0-alpha.0"
-source = "git+https://github.com/bitdriftlabs/rust-protobuf.git?branch=patch-stack#4d5c5822ad96089057c438616a943aadf6f613ac"
+source = "git+https://github.com/lyft/rust-protobuf.git?branch=patch-stack#4d5c5822ad96089057c438616a943aadf6f613ac"
 dependencies = [
  "protobuf 4.0.0-alpha.0",
  "protobuf-support 4.0.0-alpha.0",
@@ -4706,7 +4706,7 @@ dependencies = [
 [[package]]
 name = "protobuf-parse"
 version = "4.0.0-alpha.0"
-source = "git+https://github.com/bitdriftlabs/rust-protobuf.git?branch=patch-stack#4d5c5822ad96089057c438616a943aadf6f613ac"
+source = "git+https://github.com/lyft/rust-protobuf.git?branch=patch-stack#4d5c5822ad96089057c438616a943aadf6f613ac"
 dependencies = [
  "anyhow",
  "indexmap",
@@ -4730,7 +4730,7 @@ dependencies = [
 [[package]]
 name = "protobuf-support"
 version = "4.0.0-alpha.0"
-source = "git+https://github.com/bitdriftlabs/rust-protobuf.git?branch=patch-stack#4d5c5822ad96089057c438616a943aadf6f613ac"
+source = "git+https://github.com/lyft/rust-protobuf.git?branch=patch-stack#4d5c5822ad96089057c438616a943aadf6f613ac"
 dependencies = [
  "thiserror 1.0.69",
 ]
@@ -6027,7 +6027,7 @@ checksum = "56199f7ddabf13fe5074ce809e7d3f42b42ae711800501b5b16ea82ad029c39d"
 [[package]]
 name = "sketches-rust"
 version = "0.2.2"
-source = "git+https://github.com/mattklein123/sketches-rust.git?branch=patch-stack#654de9475d364e7d97f8615de5b7c5368ccd26a7"
+source = "git+https://github.com/lyft/sketches-rust.git?branch=patch-stack#654de9475d364e7d97f8615de5b7c5368ccd26a7"
 dependencies = [
  "thiserror 1.0.69",
 ]
@@ -6926,7 +6926,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 [[package]]
 name = "vrl"
 version = "0.29.0"
-source = "git+https://github.com/mattklein123/vrl.git?branch=performance-20260113#9022555225bfac3c875e7af06c9b129eac8ca918"
+source = "git+https://github.com/lyft/vrl.git?branch=performance-20260113#9022555225bfac3c875e7af06c9b129eac8ca918"
 dependencies = [
  "aes",
  "aes-siv",
