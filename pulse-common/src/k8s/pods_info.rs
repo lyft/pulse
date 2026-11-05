@@ -26,11 +26,12 @@ use bootstrap::kubernetes_bootstrap_config::host_network_pod_by_ip_filter::Filte
 use futures_util::future::BoxFuture;
 use k8s_openapi::api::core::v1::Pod;
 use kube::Api;
-use prometheus::IntCounter;
+use kube::api::ListParams;
+use prometheus::{IntCounter, IntGauge};
 use protobuf::Chars;
 use pulse_protobuf::protos::pulse::config::bootstrap::v1::bootstrap;
 use regex::Regex;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::net::IpAddr;
 use std::sync::{Arc, OnceLock};
 use time::ext::NumericalDuration;
@@ -464,18 +465,215 @@ pub async fn watch_pods(
   log::info!("starting pod watcher");
   let client = kube::Client::try_default().await?;
   let pod_api: Api<Pod> = kube::Api::all(client);
-  let field_selector = Some(format!("spec.nodeName={}", node_info.name));
+  let field_selector = format!("spec.nodeName={}", node_info.name);
+  let consistency_check = consistency_check_interval().map(|interval| {
+    (
+      interval,
+      PodsConsistencyCheck::new(
+        pod_api.clone(),
+        &field_selector,
+        effective_pod_phases(&config),
+        update_tx.subscribe(),
+        collector,
+      ),
+    )
+  });
   let pods_info_cache = PodsInfoCache::new(node_info, update_tx, config, service_cache, collector)?;
   WatcherBase::create(
     "node pod watcher".to_string(),
     pod_api,
-    field_selector,
+    Some(field_selector),
     pods_info_cache,
-    shutdown,
+    shutdown.clone(),
   )
   .await;
 
+  if let Some((interval, consistency_check)) = consistency_check {
+    log::info!(
+      "starting pod consistency check every {}s",
+      interval.as_secs()
+    );
+    tokio::spawn(consistency_check.run(interval, shutdown));
+  }
+
   Ok(())
+}
+
+/// Environment variable that enables a periodic check that the pod watcher's state still matches
+/// the Kubernetes API. The value is the check interval in seconds; unset or 0 disables the check.
+/// This exists to detect a watch that has silently stopped delivering events.
+const CONSISTENCY_CHECK_INTERVAL_ENV: &str = "PULSE_K8S_POD_CONSISTENCY_CHECK_INTERVAL_SECS";
+
+const CONSISTENCY_CHECK_LIST_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(60);
+
+fn consistency_check_interval() -> Option<std::time::Duration> {
+  let secs: u64 = std::env::var(CONSISTENCY_CHECK_INTERVAL_ENV)
+    .ok()?
+    .parse()
+    .ok()?;
+  (secs > 0).then_some(std::time::Duration::from_secs(secs))
+}
+
+fn effective_pod_phases(config: &KubernetesBootstrapConfig) -> Vec<Chars> {
+  if config.pod_phases.is_empty() {
+    vec!["Pending".into(), "Running".into()]
+  } else {
+    config.pod_phases.clone()
+  }
+}
+
+/// Formats the key used to compare pods between the Kubernetes API and the watcher state. The IP is
+/// part of the key because a recreated pod can keep its name (e.g. a StatefulSet pod) but get a
+/// new IP, which is exactly the case where stale state mislabels metrics.
+fn pod_key(namespace_and_name: &str, ip: &str) -> String {
+  format!("{namespace_and_name}@{ip}")
+}
+
+/// Returns the comparison key of the pod if PodsInfo::apply_pod() would keep it in the map. This
+/// must mirror the filtering in apply_pod().
+fn tracked_pod_key(pod: &Pod, pod_phases: &[Chars]) -> Option<String> {
+  let name = pod.metadata.name.as_ref()?;
+  let status = pod.status.as_ref()?;
+  let pod_ip = status.pod_ip.as_ref()?;
+  pod_ip.parse::<IpAddr>().ok()?;
+  let phase = status.phase.as_ref()?;
+  if !pod_phases
+    .iter()
+    .any(|phase_char| phase.as_str() == phase_char.as_str())
+  {
+    return None;
+  }
+  Some(pod_key(
+    &make_namespace_and_name(object_namespace(&pod.metadata), name),
+    pod_ip,
+  ))
+}
+
+/// Returns the pods present in only one of the Kubernetes API listing and the watcher state.
+fn out_of_sync_pods(api_pods: &HashSet<String>, pods_info: &PodsInfo) -> HashSet<String> {
+  let watched: HashSet<String> = pods_info
+    .pods()
+    .map(|(name, pod_info)| pod_key(name, &pod_info.ip_string))
+    .collect();
+  api_pods.symmetric_difference(&watched).cloned().collect()
+}
+
+/// Returns the pods that are out of sync on both the current and the previous check, sorted.
+/// Normal watch lag during pod churn can make a single check disagree, so only pods that stay out
+/// of sync are reported.
+fn persistently_out_of_sync(current: &HashSet<String>, previous: &HashSet<String>) -> Vec<String> {
+  let mut persistent: Vec<String> = current.intersection(previous).cloned().collect();
+  persistent.sort();
+  persistent
+}
+
+//
+// PodsConsistencyCheck
+//
+
+// Periodically lists the pods on this node and compares them with the watcher state. A watch that
+// has stopped delivering events leaves deleted pods in the map (so new pods that reuse their IPs
+// get the wrong metadata) and misses new pods (so their metrics are dropped). This only reports
+// the drift; it does not change the watcher state.
+struct PodsConsistencyCheck {
+  pod_api: Api<Pod>,
+  list_params: ListParams,
+  pod_phases: Vec<Chars>,
+  pods_info_rx: watch::Receiver<PodsInfo>,
+  previously_out_of_sync: HashSet<String>,
+  out_of_sync: IntGauge,
+  checks: IntCounter,
+  check_failures: IntCounter,
+}
+
+impl PodsConsistencyCheck {
+  fn new(
+    pod_api: Api<Pod>,
+    field_selector: &str,
+    pod_phases: Vec<Chars>,
+    pods_info_rx: watch::Receiver<PodsInfo>,
+    collector: &Collector,
+  ) -> Self {
+    // The pod watcher is handed the root collector, but only stats under the meta prefix are
+    // collected in practice, so register under the default "pulse_proxy" meta prefix.
+    let scope = collector.scope("pulse_proxy").scope("k8s_pods_info");
+    Self {
+      pod_api,
+      // Use a consistent list rather than resourceVersion=0 like the watcher does. A
+      // resourceVersion=0 list can be served from a stale API server cache, which would hide the
+      // kind of staleness this check exists to find.
+      list_params: ListParams::default().fields(field_selector),
+      pod_phases,
+      pods_info_rx,
+      previously_out_of_sync: HashSet::new(),
+      out_of_sync: scope.gauge("out_of_sync_pods"),
+      checks: scope.counter("consistency_checks"),
+      check_failures: scope.counter("consistency_check_failures"),
+    }
+  }
+
+  async fn run(mut self, interval: std::time::Duration, mut shutdown: ComponentShutdown) {
+    let mut ticker = tokio::time::interval(interval);
+    ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+    // The first tick completes immediately. Skip it so the first check runs one interval after the
+    // initial sync.
+    ticker.tick().await;
+
+    loop {
+      tokio::select! {
+        () = shutdown.cancelled() => break,
+        _ = ticker.tick() => self.check().await,
+      }
+    }
+  }
+
+  async fn check(&mut self) {
+    // Bound the list so a wedged API server connection can't hold up shutdown, which waits for
+    // this task.
+    let pods = match tokio::time::timeout(
+      CONSISTENCY_CHECK_LIST_TIMEOUT,
+      self.pod_api.list(&self.list_params),
+    )
+    .await
+    {
+      Ok(Ok(pods)) => pods,
+      Ok(Err(e)) => {
+        log::warn!("pod consistency check failed to list pods: {e}");
+        self.check_failures.inc();
+        return;
+      },
+      Err(_elapsed) => {
+        log::warn!("pod consistency check timed out listing pods");
+        self.check_failures.inc();
+        return;
+      },
+    };
+    self.checks.inc();
+
+    let api_pods: HashSet<String> = pods
+      .items
+      .iter()
+      .filter_map(|pod| tracked_pod_key(pod, &self.pod_phases))
+      .collect();
+    let out_of_sync = out_of_sync_pods(&api_pods, &self.pods_info_rx.borrow());
+
+    // After a failed list the gauge and the previous result are kept, so the next successful check
+    // compares against a result from two intervals ago. That is still a persistent mismatch.
+    let persistent = persistently_out_of_sync(&out_of_sync, &self.previously_out_of_sync);
+    self
+      .out_of_sync
+      .set(persistent.len().try_into().unwrap_or(i64::MAX));
+    if !persistent.is_empty() {
+      log::warn!(
+        "{} pod(s) out of sync with the Kubernetes API on consecutive checks, the pod watcher may \
+         be stalled: {:?}",
+        persistent.len(),
+        persistent.iter().take(5).collect::<Vec<_>>()
+      );
+    }
+
+    self.previously_out_of_sync = out_of_sync;
+  }
 }
 
 //
@@ -550,6 +748,7 @@ impl PodsInfoCache {
       })
     }
 
+    let pod_phases = effective_pod_phases(&config);
     let host_network_pod_by_ip_filter: Option<InternalMetadataMatcherType> = config
       .host_network_pod_by_ip_filter
       .into_option()
@@ -573,11 +772,7 @@ impl PodsInfoCache {
       node_info,
       state: PodsInfo::default(),
       update_tx,
-      pod_phases: if config.pod_phases.is_empty() {
-        vec!["Pending".into(), "Running".into()]
-      } else {
-        config.pod_phases
-      },
+      pod_phases,
       service_cache,
       initializing_state: None,
       host_network_pod_by_ip_filter,
