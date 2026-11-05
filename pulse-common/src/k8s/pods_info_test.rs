@@ -19,7 +19,7 @@ use kubernetes_bootstrap_config::{HostNetworkPodByIpFilter, MetadataMatcher};
 use pretty_assertions::assert_eq;
 use prometheus::labels;
 use pulse_protobuf::protos::pulse::config::bootstrap;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 use time::ext::NumericalDuration;
 use vrl::btreemap;
@@ -432,4 +432,116 @@ async fn pod_cache() {
   let current = rx.borrow_and_update();
   assert!(current.by_name("default", "my-serviceless-pod").is_none());
   assert!(current.by_ip(&"127.0.0.3".parse().unwrap()).is_none());
+}
+
+#[test]
+fn tracked_pod_key() {
+  let pod_phases: Vec<protobuf::Chars> = vec!["Pending".into(), "Running".into()];
+  let make_pod = |status| Pod {
+    metadata: make_object_meta("my-awesome-pod", btreemap! {}, btreemap! {}),
+    status,
+    spec: None,
+  };
+
+  assert_eq!(
+    Some("default/my-awesome-pod@127.0.0.1".to_string()),
+    super::tracked_pod_key(
+      &make_pod(make_pod_status("127.0.0.1", "Running")),
+      &pod_phases
+    )
+  );
+  // Pods that apply_pod() would not keep in the map.
+  assert_eq!(
+    None,
+    super::tracked_pod_key(
+      &make_pod(make_pod_status("127.0.0.1", "Succeeded")),
+      &pod_phases
+    )
+  );
+  assert_eq!(
+    None,
+    super::tracked_pod_key(
+      &make_pod(make_pod_status("not-an-ip", "Running")),
+      &pod_phases
+    )
+  );
+  assert_eq!(None, super::tracked_pod_key(&make_pod(None), &pod_phases));
+}
+
+#[test]
+fn out_of_sync_pods() {
+  let mut pods_info = PodsInfo::default();
+  for (name, ip) in [
+    ("watched-and-listed", "127.0.0.1"),
+    ("watched-only", "127.0.0.2"),
+    ("recreated", "127.0.0.3"),
+  ] {
+    pods_info.insert(
+      make_pod_info(
+        "default",
+        name,
+        &BTreeMap::default(),
+        BTreeMap::default(),
+        HashMap::default(),
+        ip,
+        vec![],
+      ),
+      true,
+    );
+  }
+  // "recreated" kept its name but got a new IP, which a stalled watcher would not have seen.
+  let api_pods: HashSet<String> = [
+    "default/watched-and-listed@127.0.0.1".to_string(),
+    "default/listed-only@127.0.0.4".to_string(),
+    "default/recreated@127.0.0.5".to_string(),
+  ]
+  .into();
+
+  let mut out_of_sync: Vec<String> = super::out_of_sync_pods(&api_pods, &pods_info)
+    .into_iter()
+    .collect();
+  out_of_sync.sort();
+  assert_eq!(
+    vec![
+      "default/listed-only@127.0.0.4".to_string(),
+      "default/recreated@127.0.0.3".to_string(),
+      "default/recreated@127.0.0.5".to_string(),
+      "default/watched-only@127.0.0.2".to_string(),
+    ],
+    out_of_sync
+  );
+
+  // An empty watcher state (e.g. it never synced) reports every listed pod.
+  assert_eq!(
+    3,
+    super::out_of_sync_pods(&api_pods, &PodsInfo::default()).len()
+  );
+}
+
+#[test]
+fn persistently_out_of_sync() {
+  let set = |pods: &[&str]| -> HashSet<String> { pods.iter().map(ToString::to_string).collect() };
+
+  let none: Vec<String> = vec![];
+
+  // First check: nothing to compare against yet.
+  assert_eq!(
+    none,
+    super::persistently_out_of_sync(&set(&["a", "b"]), &set(&[]))
+  );
+  // Out of sync on consecutive checks.
+  assert_eq!(
+    vec!["a".to_string(), "b".to_string()],
+    super::persistently_out_of_sync(&set(&["b", "a"]), &set(&["a", "b"]))
+  );
+  // Churn: a different pod is briefly out of sync on each check.
+  assert_eq!(
+    none,
+    super::persistently_out_of_sync(&set(&["b"]), &set(&["a"]))
+  );
+  // Recovered.
+  assert_eq!(
+    none,
+    super::persistently_out_of_sync(&set(&[]), &set(&["a", "b"]))
+  );
 }
